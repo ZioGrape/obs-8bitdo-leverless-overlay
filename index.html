@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8BitDo Arcade Controller — Stream Overlay</title>
+<link rel="stylesheet" href="./index.css?v=26" />
+</head>
+<body>
+
+  <button id="toolbarHandle" type="button" title="Показать/скрыть панель редактора">☰ Панель</button>
+  <div id="toolbar">
+    <div class="tb-group">
+      <button id="editToggle" class="tb-btn tb-btn--primary" type="button">Режим редактирования: ВКЛ</button>
+      <span id="gpStatus" class="gp-status gp-status--off">Геймпад: не подключен</span>
+    </div>
+    <div class="tb-group">
+      <button id="presetDark" class="tb-btn" type="button" title="Тёмная тема по умолчанию">Пресет: Тёмная</button>
+      <button id="presetNeon" class="tb-btn" type="button" title="Неоновая подсветка">Пресет: Неон</button>
+      <button id="resetStyles" class="tb-btn tb-btn--danger" type="button">Сбросить стили</button>
+    </div>
+    <div class="tb-group">
+      <button id="exportCfg" class="tb-btn" type="button">Экспорт конфига</button>
+      <button id="importCfg" class="tb-btn" type="button">Импорт конфига</button>
+      <input id="importFile" type="file" accept="application/json" hidden>
+      <label class="tb-check"><input id="bgToggle" type="checkbox"> непрозрачный фон (превью)</label>
+    </div>
+    <div class="tb-hint">Overlay-URL для OBS (Browser Source, фон прозрачный): <code id="overlayUrl">index.html?overlay=1</code></div>
+  </div>
+
+  <div id="stageWrap">
+    <div id="stage">
+      <div class="controller-body">
+        <div class="hand-surface"></div>
+        <div class="ctrl-frame"></div>
+        <span class="ctrl-divider" style="left:86px;"></span>
+        <span class="ctrl-divider" style="left:163px;"></span>
+        <span class="ctrl-divider" style="left:240px;"></span>
+        <span class="ctrl-divider" style="left:317px;"></span>
+        <div class="brand">8BitDo <span>Arcade Controller</span></div>
+        <span class="strip-dot" style="left:201.5px;"></span>
+        <span class="strip-dot strip-dot--lit" style="left:278.5px;"></span>
+        <span class="strip-dot" style="left:355.5px;"></span>
+        <svg class="corner-logo" viewBox="0 0 7 6" shape-rendering="crispEdges">
+          <!-- checkerboard-dithered heart: the "off" checker cells are
+               just absent (panel background shows through), only the
+               "on" cells are drawn, in the accent color -->
+          <path d="M2,0 L3,0 L3,1 L2,1 Z M4,0 L5,0 L5,1 L4,1 Z M1,1 L2,1 L2,2 L1,2 Z M3,1 L4,1 L4,2 L3,2 Z M5,1 L6,1 L6,2 L5,2 Z M0,2 L1,2 L1,3 L0,3 Z M2,2 L3,2 L3,3 L2,3 Z M4,2 L5,2 L5,3 L4,3 Z M6,2 L7,2 L7,3 L6,3 Z M1,3 L2,3 L2,4 L1,4 Z M3,3 L4,3 L4,4 L3,4 Z M5,3 L6,3 L6,4 L5,4 Z M2,4 L3,4 L3,5 L2,5 Z M4,4 L5,4 L5,5 L4,5 Z M3,5 L4,5 L4,6 L3,6 Z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <aside id="inspector" class="inspector inspector--hidden">
+    <div class="insp-head">
+      <strong id="inspTitle">Кнопка</strong>
+      <button id="inspClose" class="tb-btn tb-btn--small" type="button">✕</button>
+    </div>
+
+    <label class="insp-row">
+      <span>Название</span>
+      <input id="inspLabel" type="text" maxlength="12">
+    </label>
+
+    <div class="insp-row insp-row--col">
+      <span>Привязка входа</span>
+      <div id="inspBindingValue" class="binding-value">—</div>
+      <div class="insp-actions">
+        <button id="inspBind" class="tb-btn tb-btn--primary tb-btn--small" type="button">Назначить…</button>
+        <button id="inspClear" class="tb-btn tb-btn--small" type="button">Очистить</button>
+      </div>
+    </div>
+
+    <div class="insp-row insp-row--col">
+      <span>Состояние: покой</span>
+      <div class="color-pair">
+        <label>Заливка <input id="inspIdleFill" type="color"></label>
+        <label>Обводка <input id="inspIdleBorder" type="color"></label>
+      </div>
+    </div>
+
+    <div class="insp-row insp-row--col">
+      <span>Состояние: нажато</span>
+      <div class="color-pair">
+        <label>Заливка <input id="inspActiveFill" type="color"></label>
+        <label>Обводка/свечение <input id="inspActiveBorder" type="color"></label>
+      </div>
+    </div>
+
+    <label class="insp-row">
+      <span>Показывать подпись</span>
+      <input id="inspShowLabel" type="checkbox">
+    </label>
+  </aside>
+
+  <script src="./index.js?v=25"></script>
+</body>
+</html>

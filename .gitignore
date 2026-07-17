@@ -1,0 +1,10 @@
+# Claude Code local tooling config (personal, not project config)
+.claude/
+
+# Reference photos used to trace button geometry — third-party product
+# images (retailer/press photos), not licensed for redistribution.
+references/
+
+# OS cruft
+Thumbs.db
+.DS_Store
