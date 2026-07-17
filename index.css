@@ -470,7 +470,12 @@ body[data-theme="standard"] .pad-el.pad-xbox.is-active{
 }
 
 body[data-theme="purple"] .controller-body{
-  background: linear-gradient(180deg, #6b4f97 0%, #2c1c42 100%);
+  /* the Signature Edition's shell is genuinely translucent plastic — let
+     whatever's behind the overlay (the OBS scene, or the editor's preview
+     backdrop) show through instead of a flat opaque purple. Brightened
+     from the first pass (0.6/0.72 alpha), which read darker/muddier than
+     the reference photo's vivid, still-bright-when-lit shell. */
+  background: linear-gradient(180deg, rgba(122, 94, 169, 0.78) 0%, rgba(56, 36, 92, 0.85) 100%);
   border-color: #4a3570;
 }
 body[data-theme="purple"] .ctrl-frame,

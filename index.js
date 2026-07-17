@@ -861,10 +861,25 @@
     BUTTON_DEFS.forEach(function (def) {
       if (def.kind !== "button" && def.kind !== "fn" && def.kind !== "xbox") return;
       var s = config.styles[def.id];
-      s.idleFill = "#5c4b7b";
-      s.idleBorder = "#2f1d45";
-      s.activeFill = "#3a2a5c";
-      s.activeBorder = "#c9a6ff";
+      if (def.kind === "button") {
+        // the gameplay buttons (face grid, d-pad, paddles) are translucent
+        // plastic on the real Signature Edition — let the dark panel show
+        // through instead of a flat opaque fill. round_1/btn_xbox/round_2
+        // (kind fn/xbox) stay solid, matching their reference photo look.
+        // First pass (0.55 alpha over near-black) blended down to a muted
+        // rgb(55,46,72) — much darker than the photo's actual buttons,
+        // which stay bright/vivid even where light passes through; raised
+        // both the base tone and the alpha to land closer to that.
+        s.idleFill = "rgba(130, 102, 178, 0.72)";
+        s.idleBorder = "#2f1d45";
+        s.activeFill = "rgba(175, 138, 224, 0.82)";
+        s.activeBorder = "#c9a6ff";
+      } else {
+        s.idleFill = "#5c4b7b";
+        s.idleBorder = "#2f1d45";
+        s.activeFill = "#3a2a5c";
+        s.activeBorder = "#c9a6ff";
+      }
     });
     setCaseTheme("purple");
     saveConfig();
