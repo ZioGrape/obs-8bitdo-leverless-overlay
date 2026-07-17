@@ -30,10 +30,15 @@ body.overlay-mode #stageWrap{
 
 /* ---------- toolbar ---------- */
 
+/* Fixed to the viewport corner (not a sibling row) so it reads as part
+   of the panel's top edge once expanded, instead of leaving an empty
+   handle-only row above the toolbar. Stays put — and stays the only way
+   back in — when the toolbar itself is collapsed via toolbar-hidden. */
 #toolbarHandle{
-  position:relative;
-  z-index:21;
-  margin:8px 0 0 12px;
+  position:fixed;
+  top:10px;
+  right:16px;
+  z-index:22;
   background:#232427;
   color:#c7c9cd;
   border:1px solid #35363a;
@@ -55,7 +60,7 @@ body.overlay-mode #stageWrap{
   flex-wrap:wrap;
   gap:10px 18px;
   align-items:center;
-  padding:10px 16px;
+  padding:10px 130px 10px 16px;
   background:#111214ee;
   border-bottom:1px solid #2a2b2e;
   font-size:13px;
@@ -67,6 +72,9 @@ body.overlay-mode #stageWrap{
   gap:8px;
   flex-wrap:wrap;
 }
+
+.tb-lang{ gap:4px; }
+.tb-lang-btn{ min-width:38px; text-align:center; }
 
 .tb-hint{
   flex-basis:100%;
@@ -155,6 +163,41 @@ body.overlay-mode #stageWrap{
   background-size: 180px 180px, cover, cover;
 }
 
+/* Standard edition's panel reads visibly lighter in its own reference
+   photo than the Xbox-edition panel the default theme is modeled on, so
+   this lightening is scoped here rather than changing the shared rule
+   above (which stays the original Dark-theme value). */
+body[data-theme="standard"] .hand-surface{
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/></svg>"),
+    radial-gradient(ellipse 70% 45% at 28% 8%, #ffffff0c 0%, transparent 60%),
+    linear-gradient(180deg, #303134 0%, #0d0e10 100%);
+}
+
+/* bottom accent strip — sampled off references/8BitDo-Arcade-Controller-
+   Nintendo-Switch.jpg: a band distinctly darker than the rest of the
+   panel, running the full width of the button field flush against the
+   case's bottom bezel (the heart logo and the ridged vent texture both
+   sit inside it, on opposite sides). Matching corner radius so its
+   background — clipped to that rounded shape automatically — never
+   pokes past the case outline. Flush-to-bezel takes priority over
+   centering .corner-logo inside it (that would need a taller band,
+   pulling it off the bezel). Not present on the Xbox-edition reference
+   this overlay is otherwise built from, so it's scoped to the Standard
+   theme only. */
+body[data-theme="standard"] .hand-surface::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:65px;
+  border-radius:0 0 23px 23px;
+  background:
+    repeating-linear-gradient(90deg, #46474a 0px, #46474a 7px, #1c1d1f 7px, #1c1d1f 16px) 745px center / 153px 100% no-repeat,
+    linear-gradient(#0c0c0c, #0c0c0c);
+}
+
 /* thin recessed-bezel seam just inside the case edge, and the divider
    line separating the top control strip from the main button field --
    both measured off the reference photo */
@@ -219,7 +262,7 @@ body.overlay-mode #stageWrap{
 .corner-logo{
   position:absolute;
   left:38px;
-  top:591px;
+  top:610px;
   width:49px;
   height:42px;
   fill:#000;
@@ -276,6 +319,20 @@ body.overlay-mode #stageWrap{
 
 .pad-btn .lbl{
   pointer-events:none;
+  /* without this, an icon child (e.g. the SF6 punch/kick images) isn't
+     reliably centered — .lbl shrink-wraps around it via normal inline
+     flow, and a percentage-sized child inside a shrink-to-fit box
+     resolves against an unpredictable size, landing top-left instead of
+     centered. */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.pad-btn .lbl img.sf6-icon{
+  width:58px;
+  height:58px;
+  object-fit:contain;
 }
 
 .pad-btn .lbl--arrow{
@@ -368,6 +425,94 @@ body.overlay-mode #stageWrap{
   font-size:19px;
   color:#9a9da2;
   line-height:1;
+}
+
+/* ---------- case color themes ---------- */
+/* Default (no data-theme attr) is the photographed Xbox Series X edition
+   already baked into .controller-body/.pad-knob/etc. above — only the two
+   alt colorways below need overrides. Button idle/active fill+border are
+   set per-button through config.styles (see presetStandard/presetPurple in
+   index.js) since .pad-btn already reads those as CSS custom properties;
+   this block only re-skins the parts that were previously fixed in CSS
+   (case shell, top-strip frame, wordmark, knobs, fn-icon color) — sampled
+   directly off references/8BitDo-Arcade-Controller-Nintendo-Switch.jpg and
+   references/80FG__02.webp + slide4-l.jpg. */
+
+body[data-theme="standard"] .controller-body{
+  background: linear-gradient(180deg, #c9c5c1 0%, #a4a09c 100%);
+  border-color: #8f8b87;
+}
+body[data-theme="standard"] .ctrl-frame,
+body[data-theme="standard"] .ctrl-divider{
+  border-color: #00000035;
+}
+body[data-theme="standard"] .brand{ color:#9a0a10; }
+body[data-theme="standard"] .brand span{ color:#6b3532; }
+body[data-theme="standard"] .pad-knob .knob-label{ color:#4a4b4f; }
+body[data-theme="standard"] .pad-knob::after{ background:#c0392b; }
+body[data-theme="standard"] .corner-logo{ fill:#9a0a10; opacity:.85; }
+/* the top-strip trio (round_1/btn_xbox/round_2) is green/yellow/blue in
+   this edition, not case-colored, so their icons need to read against a
+   bright fill instead of the case background — while fn_star/fn_capture/
+   fn_share/fn_menu (L3/R3/SELECT/START) get an off-white cap and need a
+   dark icon for contrast instead. .pad-xbox's fill is hardcoded in CSS
+   (ignores --idle-fill) so it needs its own override here too. */
+body[data-theme="standard"] [data-id="round_1"],
+body[data-theme="standard"] [data-id="round_2"]{
+  color:#ffffff;
+}
+body[data-theme="standard"] [data-id="fn_star"],
+body[data-theme="standard"] [data-id="fn_capture"],
+body[data-theme="standard"] [data-id="fn_share"],
+body[data-theme="standard"] [data-id="fn_menu"]{
+  color:#3a3b3e;
+  /* L3/R3/SELECT/START read as almost the same tone as the case in the
+     reference photo — just a hairline edge, not the thick black inset
+     ring .pad-btn uses for the green-glow gameplay buttons. */
+  border-width:1px;
+  box-shadow:none;
+}
+body[data-theme="standard"] .pad-el.pad-xbox{
+  background: radial-gradient(circle at 35% 30%, #fff59d 0%, #d4b106 100%);
+  /* pad-xbox defaults to a dark icon color, right for the Xbox mark it
+     normally shows but wrong for the star swapped in here — the
+     reference photo's star is white. */
+  color:#ffffff;
+}
+body[data-theme="standard"] .pad-el.pad-xbox.is-active{
+  background: radial-gradient(circle at 35% 30%, #fff9c4 0%, #e6c619 100%);
+}
+
+body[data-theme="purple"] .controller-body{
+  /* the Signature Edition's shell is genuinely translucent plastic — let
+     whatever's behind the overlay (the OBS scene, or the editor's preview
+     backdrop) show through instead of a flat opaque purple. Brightened
+     from the first pass (0.6/0.72 alpha), which read darker/muddier than
+     the reference photo's vivid, still-bright-when-lit shell. */
+  background: linear-gradient(180deg, rgba(122, 94, 169, 0.78) 0%, rgba(56, 36, 92, 0.85) 100%);
+  border-color: #4a3570;
+}
+body[data-theme="purple"] .ctrl-frame,
+body[data-theme="purple"] .ctrl-divider{
+  border-color: #ffffff30;
+}
+body[data-theme="purple"] .brand{ color:#e4d6ff; }
+body[data-theme="purple"] .brand span{ color:#b8a0dd; }
+body[data-theme="purple"] .pad-knob{
+  background: radial-gradient(circle at 35% 30%, #6b4f97 0%, #241733 70%);
+  border-color:#4a3570;
+}
+body[data-theme="purple"] .pad-knob::after{ background:#c9a6ff; }
+/* every button reads the same purple in this edition, including the
+   top-strip trio and L3/R3/SELECT/START — unlike Standard, no per-id
+   split needed, just a lighter icon tint for contrast against the fill. */
+body[data-theme="purple"] .pad-fn{ color:#e4d6ff; }
+body[data-theme="purple"] .pad-el.pad-xbox{
+  background: radial-gradient(circle at 35% 30%, #8a6fc0 0%, #4a3570 100%);
+  color:#f0e6ff;
+}
+body[data-theme="purple"] .pad-el.pad-xbox.is-active{
+  background: radial-gradient(circle at 35% 30%, #b89be0 0%, #6b4f97 100%);
 }
 
 /* selection outline while in edit mode */

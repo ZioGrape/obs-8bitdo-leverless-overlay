@@ -4,28 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>8BitDo Arcade Controller — Stream Overlay</title>
-<link rel="stylesheet" href="./index.css?v=26" />
+<link rel="stylesheet" href="./index.css?v=46" />
 </head>
 <body>
 
-  <button id="toolbarHandle" type="button" title="Показать/скрыть панель редактора">☰ Панель</button>
+  <button id="toolbarHandle" type="button" data-i18n="toolbarHandleLabel" data-i18n-title="toolbarHandleTitle" title="Показать/скрыть панель редактора">☰ Панель</button>
   <div id="toolbar">
+    <div class="tb-group tb-lang" role="group" aria-label="Language / Язык">
+      <button id="langRu" class="tb-btn tb-lang-btn" type="button" data-lang="ru">RU</button>
+      <button id="langEn" class="tb-btn tb-lang-btn" type="button" data-lang="en">EN</button>
+    </div>
     <div class="tb-group">
       <button id="editToggle" class="tb-btn tb-btn--primary" type="button">Режим редактирования: ВКЛ</button>
       <span id="gpStatus" class="gp-status gp-status--off">Геймпад: не подключен</span>
     </div>
     <div class="tb-group">
-      <button id="presetDark" class="tb-btn" type="button" title="Тёмная тема по умолчанию">Пресет: Тёмная</button>
-      <button id="presetNeon" class="tb-btn" type="button" title="Неоновая подсветка">Пресет: Неон</button>
-      <button id="resetStyles" class="tb-btn tb-btn--danger" type="button">Сбросить стили</button>
+      <button id="presetDark" class="tb-btn" type="button" data-i18n="presetDark" data-i18n-title="presetDarkTitle" title="Тёмная тема по умолчанию">Пресет: Тёмная</button>
+      <button id="presetStandard" class="tb-btn" type="button" data-i18n="presetStandard" data-i18n-title="presetStandardTitle" title="Серый корпус, красные кнопки (стандартная расцветка 8BitDo Arcade Controller)">Пресет: Стандарт</button>
+      <button id="presetPurple" class="tb-btn" type="button" data-i18n="presetPurple" data-i18n-title="presetPurpleTitle" title="Прозрачно-фиолетовый корпус (Transparent Purple Signature Edition)">Пресет: Purple</button>
+      <button id="resetStyles" class="tb-btn tb-btn--danger" type="button" data-i18n="resetStyles">Сбросить стили</button>
     </div>
     <div class="tb-group">
-      <button id="exportCfg" class="tb-btn" type="button">Экспорт конфига</button>
-      <button id="importCfg" class="tb-btn" type="button">Импорт конфига</button>
-      <input id="importFile" type="file" accept="application/json" hidden>
-      <label class="tb-check"><input id="bgToggle" type="checkbox"> непрозрачный фон (превью)</label>
+      <button id="layoutXbox" class="tb-btn tb-btn--primary" type="button" data-i18n="layoutXbox" data-i18n-title="layoutXboxTitle" title="Буквы Y/X/A/B и RB/LB/RT/LT">Раскладка: Xbox</button>
+      <button id="layoutSf6" class="tb-btn" type="button" data-i18n="layoutSf6" data-i18n-title="layoutSf6Title" title="Иконки Street Fighter 6: LP/MP/HP и LK/MK/HK">Раскладка: Street Fighter 6</button>
+      <button id="layoutSwitch" class="tb-btn" type="button" data-i18n="layoutSwitch" data-i18n-title="layoutSwitchTitle" title="X/Y и A/B поменяны местами, R/L/ZR/ZL вместо RB/LB/RT/LT">Раскладка: Nintendo Switch</button>
     </div>
-    <div class="tb-hint">Overlay-URL для OBS (Browser Source, фон прозрачный): <code id="overlayUrl">index.html?overlay=1</code></div>
+    <div class="tb-group">
+      <button id="exportCfg" class="tb-btn" type="button" data-i18n="exportCfg">Экспорт конфига</button>
+      <button id="importCfg" class="tb-btn" type="button" data-i18n="importCfg">Импорт конфига</button>
+      <input id="importFile" type="file" accept="application/json" hidden>
+      <label class="tb-check"><input id="bgToggle" type="checkbox"> <span data-i18n="bgToggleLabel">непрозрачный фон (превью)</span></label>
+    </div>
+    <div class="tb-hint"><span data-i18n="overlayHint">Overlay-URL для OBS (Browser Source, фон прозрачный): </span><code id="overlayUrl">index.html?overlay=1</code></div>
   </div>
 
   <div id="stageWrap">
@@ -58,41 +68,41 @@
     </div>
 
     <label class="insp-row">
-      <span>Название</span>
+      <span data-i18n="labelName">Название</span>
       <input id="inspLabel" type="text" maxlength="12">
     </label>
 
     <div class="insp-row insp-row--col">
-      <span>Привязка входа</span>
+      <span data-i18n="labelBinding">Привязка входа</span>
       <div id="inspBindingValue" class="binding-value">—</div>
       <div class="insp-actions">
-        <button id="inspBind" class="tb-btn tb-btn--primary tb-btn--small" type="button">Назначить…</button>
-        <button id="inspClear" class="tb-btn tb-btn--small" type="button">Очистить</button>
+        <button id="inspBind" class="tb-btn tb-btn--primary tb-btn--small" type="button" data-i18n="bindAssign">Назначить…</button>
+        <button id="inspClear" class="tb-btn tb-btn--small" type="button" data-i18n="bindClear">Очистить</button>
       </div>
     </div>
 
     <div class="insp-row insp-row--col">
-      <span>Состояние: покой</span>
+      <span data-i18n="stateIdle">Состояние: покой</span>
       <div class="color-pair">
-        <label>Заливка <input id="inspIdleFill" type="color"></label>
-        <label>Обводка <input id="inspIdleBorder" type="color"></label>
+        <label><span data-i18n="colorFill">Заливка</span> <input id="inspIdleFill" type="color"></label>
+        <label><span data-i18n="colorBorder">Обводка</span> <input id="inspIdleBorder" type="color"></label>
       </div>
     </div>
 
     <div class="insp-row insp-row--col">
-      <span>Состояние: нажато</span>
+      <span data-i18n="stateActive">Состояние: нажато</span>
       <div class="color-pair">
-        <label>Заливка <input id="inspActiveFill" type="color"></label>
-        <label>Обводка/свечение <input id="inspActiveBorder" type="color"></label>
+        <label><span data-i18n="colorFill">Заливка</span> <input id="inspActiveFill" type="color"></label>
+        <label><span data-i18n="colorBorderGlow">Обводка/свечение</span> <input id="inspActiveBorder" type="color"></label>
       </div>
     </div>
 
     <label class="insp-row">
-      <span>Показывать подпись</span>
+      <span data-i18n="showLabel">Показывать подпись</span>
       <input id="inspShowLabel" type="checkbox">
     </label>
   </aside>
 
-  <script src="./index.js?v=25"></script>
+  <script src="./index.js?v=43"></script>
 </body>
 </html>

@@ -70,6 +70,110 @@
   // per-id bindings.
   var STORAGE_KEY = "arcadeOverlayConfig.v2";
 
+  // ---------------------------------------------------------------------
+  // i18n — control panel only (editor UI text). Persisted separately from
+  // the layout config so switching language never touches button bindings.
+  // ---------------------------------------------------------------------
+  var LANG_KEY = "arcadeOverlayLang";
+  var I18N = {
+    ru: {
+      toolbarHandleLabel: "☰ Панель",
+      toolbarHandleTitle: "Показать/скрыть панель редактора",
+      editModeLabel: "Режим редактирования: ",
+      editModeOn: "ВКЛ",
+      editModeOff: "ВЫКЛ",
+      gpDisconnected: "Геймпад: не подключен",
+      gpConnectedPrefix: "Геймпад: ",
+      presetDark: "Пресет: Тёмная",
+      presetDarkTitle: "Тёмная тема по умолчанию",
+      presetStandard: "Пресет: Стандарт",
+      presetStandardTitle: "Серый корпус, красные кнопки (стандартная расцветка 8BitDo Arcade Controller)",
+      presetPurple: "Пресет: Purple",
+      presetPurpleTitle: "Прозрачно-фиолетовый корпус (Transparent Purple Signature Edition)",
+      layoutXbox: "Раскладка: Xbox",
+      layoutXboxTitle: "Буквы Y/X/A/B и RB/LB/RT/LT",
+      layoutSf6: "Раскладка: Street Fighter 6",
+      layoutSf6Title: "Иконки Street Fighter 6: LP/MP/HP и LK/MK/HK",
+      layoutSwitch: "Раскладка: Nintendo Switch",
+      layoutSwitchTitle: "X/Y и A/B поменяны местами, R/L/ZR/ZL вместо RB/LB/RT/LT",
+      resetStyles: "Сбросить стили",
+      exportCfg: "Экспорт конфига",
+      importCfg: "Импорт конфига",
+      bgToggleLabel: "непрозрачный фон (превью)",
+      overlayHint: "Overlay-URL для OBS (Browser Source, фон прозрачный): ",
+      labelName: "Название",
+      labelBinding: "Привязка входа",
+      bindAssign: "Назначить…",
+      bindClear: "Очистить",
+      stateIdle: "Состояние: покой",
+      stateActive: "Состояние: нажато",
+      colorFill: "Заливка",
+      colorBorder: "Обводка",
+      colorBorderGlow: "Обводка/свечение",
+      showLabel: "Показывать подпись",
+      pressKeyOrButton: "Нажмите клавишу или кнопку геймпада…",
+      bindGamepadButton: "Геймпад: кнопка ",
+      bindKey: "Клавиша: ",
+      confirmResetStyles: "Сбросить цвета всех кнопок к значениям по умолчанию? Привязки входов сохранятся.",
+      importError: "Не удалось прочитать файл конфигурации: ",
+      dash: "—"
+    },
+    en: {
+      toolbarHandleLabel: "☰ Panel",
+      toolbarHandleTitle: "Show/hide the editor panel",
+      editModeLabel: "Edit mode: ",
+      editModeOn: "ON",
+      editModeOff: "OFF",
+      gpDisconnected: "Gamepad: not connected",
+      gpConnectedPrefix: "Gamepad: ",
+      presetDark: "Preset: Dark",
+      presetDarkTitle: "Default dark theme",
+      presetStandard: "Preset: Standard",
+      presetStandardTitle: "Grey case, red buttons (stock 8BitDo Arcade Controller colorway)",
+      presetPurple: "Preset: Purple",
+      presetPurpleTitle: "Transparent Purple Signature Edition",
+      layoutXbox: "Layout: Xbox",
+      layoutXboxTitle: "Y/X/A/B letters and RB/LB/RT/LT",
+      layoutSf6: "Layout: Street Fighter 6",
+      layoutSf6Title: "Street Fighter 6 icons: LP/MP/HP and LK/MK/HK",
+      layoutSwitch: "Layout: Nintendo Switch",
+      layoutSwitchTitle: "X/Y and A/B swapped, R/L/ZR/ZL instead of RB/LB/RT/LT",
+      resetStyles: "Reset styles",
+      exportCfg: "Export config",
+      importCfg: "Import config",
+      bgToggleLabel: "opaque background (preview)",
+      overlayHint: "Overlay URL for OBS (Browser Source, transparent background): ",
+      labelName: "Name",
+      labelBinding: "Input binding",
+      bindAssign: "Assign…",
+      bindClear: "Clear",
+      stateIdle: "State: idle",
+      stateActive: "State: pressed",
+      colorFill: "Fill",
+      colorBorder: "Border",
+      colorBorderGlow: "Border/glow",
+      showLabel: "Show label",
+      pressKeyOrButton: "Press a key or gamepad button…",
+      bindGamepadButton: "Gamepad: button ",
+      bindKey: "Key: ",
+      confirmResetStyles: "Reset all button colors to defaults? Input bindings will be kept.",
+      importError: "Failed to read config file: ",
+      dash: "—"
+    }
+  };
+
+  var lang = (function () {
+    var saved = null;
+    try { saved = localStorage.getItem(LANG_KEY); } catch (e) { saved = null; }
+    if (saved === "ru" || saved === "en") return saved;
+    return (navigator.language || "").toLowerCase().indexOf("ru") === 0 ? "ru" : "en";
+  })();
+
+  function t(key) {
+    var dict = I18N[lang] || I18N.ru;
+    return dict[key] !== undefined ? dict[key] : I18N.ru[key];
+  }
+
   function defaultStyleFor(def) {
     return {
       idleFill: "#0c0c0c",
@@ -87,6 +191,8 @@
     cfg.bindings = cfg.bindings || {};
     cfg.styles = cfg.styles || {};
     cfg.labels = cfg.labels || {};
+    cfg.theme = typeof cfg.theme === "string" ? cfg.theme : "";
+    cfg.layout = (cfg.layout === "sf6" || cfg.layout === "switch") ? cfg.layout : "xbox";
 
     BUTTON_DEFS.forEach(function (def) {
       if (!cfg.bindings[def.id]) {
@@ -106,6 +212,7 @@
   }
 
   var config = loadConfig();
+  var layout = config.layout; // "xbox" | "sf6" | "switch" — face-button glyphs, independent of case theme
   var elements = {}; // id -> { root, labelEl }
   var editMode = true;
   var overlayForced = /[?&]overlay=1/.test(location.search);
@@ -193,6 +300,37 @@
     p.setAttribute("d", STAR_MARK_PATH);
     p.setAttribute("fill", "currentColor");
     svg.appendChild(p);
+    return svg;
+  }
+
+  // wifi/signal mark — the Standard and Purple Signature editions use this
+  // (plus a star, swapped with the Xbox hub) on the top-strip trio instead
+  // of the Xbox-edition's star/Xbox-mark/heart, per their reference photos.
+  function buildWifiMark() {
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.style.width = "62%";
+    svg.style.height = "62%";
+    [
+      "M2 8.5C7 3.5 17 3.5 22 8.5",
+      "M5.5 12.5C9 9 15 9 18.5 12.5",
+      "M9 16.5C10.7 14.8 13.3 14.8 15 16.5"
+    ].forEach(function (d) {
+      var p = document.createElementNS(svgNS, "path");
+      p.setAttribute("d", d);
+      p.setAttribute("stroke", "currentColor");
+      p.setAttribute("stroke-width", "2");
+      p.setAttribute("stroke-linecap", "round");
+      svg.appendChild(p);
+    });
+    var dot = document.createElementNS(svgNS, "circle");
+    dot.setAttribute("cx", "12");
+    dot.setAttribute("cy", "20");
+    dot.setAttribute("r", "1.4");
+    dot.setAttribute("fill", "currentColor");
+    svg.appendChild(dot);
     return svg;
   }
 
@@ -286,6 +424,117 @@
     BUTTON_DEFS.forEach(function (def) { applyStyle(def.id); });
   }
 
+  var TOP_STRIP_LABELS = [
+    { id: "fn_star", label: "L3" },
+    { id: "fn_capture", label: "R3" },
+    { id: "fn_share", label: "SELECT" },
+    { id: "fn_menu", label: "START" }
+  ];
+
+  var COLORED_LABEL_IDS = ["btn_Y", "btn_X", "btn_A", "btn_B"];
+
+  // Street Fighter 6 layout override — applied in applyStyle() instead of
+  // at buildStage() time, since layout can change at runtime and
+  // buildStage() only runs once. Reading left-to-right by physical x
+  // position, the top row is X, Y, RB, LB and the bottom row is A, B, RT,
+  // LT — the punch/kick progression starts at X/A (not Y/B), and the
+  // rightmost pair are SF6's Drive Impact / Drive Parry, not attacks.
+  // No icon art was provided for DI/DP, so those two stay text labels.
+  var SF6_OVERRIDES = {
+    btn_X: { img: "images/light-punch.png", alt: "LP" },
+    btn_Y: { img: "images/mid-punch.png", alt: "MP" },
+    btn_RB: { img: "images/heavy-punch.png", alt: "HP" },
+    btn_LB: { text: "DI" },
+    btn_A: { img: "images/light-kcik.png", alt: "LK" },
+    btn_B: { img: "images/mid-kick.png", alt: "MK" },
+    btn_RT: { img: "images/heavy-kick.png", alt: "HK" },
+    btn_LT: { text: "DP" }
+  };
+
+  // Nintendo Switch edition swaps the Xbox diamond's top/left and
+  // right/bottom letters (Y<->X, B<->A — sampled off
+  // references/8BitDo-Arcade-Controller-Nintendo-Switch.jpg) and uses
+  // R/L/ZR/ZL for the shoulder column instead of RB/LB/RT/LT.
+  var SWITCH_OVERRIDES = {
+    btn_Y: { text: "X" },
+    btn_X: { text: "Y" },
+    btn_B: { text: "A" },
+    btn_A: { text: "B" },
+    btn_RB: { text: "R" },
+    btn_LB: { text: "L" },
+    btn_RT: { text: "ZR" },
+    btn_LT: { text: "ZL" }
+  };
+
+  var LAYOUT_OVERRIDES = { sf6: SF6_OVERRIDES, switch: SWITCH_OVERRIDES };
+
+  // Standard/Purple show wifi-mark + star on the top-strip trio instead of
+  // the Xbox edition's star + Xbox-mark (round_2's heart is shared by all
+  // editions, so it's left alone). Re-run whenever the case theme changes.
+  function refreshTopIcons() {
+    var useAlt = document.body.dataset.theme === "standard" || document.body.dataset.theme === "purple";
+    var round1El = elements["round_1"].root;
+    round1El.innerHTML = "";
+    round1El.appendChild(useAlt ? buildWifiMark() : buildStarMark());
+    var xboxEl = elements["btn_xbox"].root;
+    xboxEl.innerHTML = "";
+    xboxEl.appendChild(useAlt ? buildStarMark() : buildXboxMark());
+
+    // The Xbox edition's L3/R3/SELECT/START-equivalent row is 1 round +
+    // 3 pill (fn_star round, the rest pill). Standard/Purple's is 2 round
+    // + 2 pill (L3/R3 round, SELECT/START pill) — fn_capture is the one
+    // that needs to switch shape; fn_star/fn_share/fn_menu already match.
+    var captureEl = elements["fn_capture"].root;
+    var captureDef = elements["fn_capture"].def;
+    if (useAlt) {
+      captureEl.style.width = elements["fn_star"].def.w + "px";
+      captureEl.style.height = elements["fn_star"].def.h + "px";
+      captureEl.classList.remove("shape-pill");
+      captureEl.classList.add("shape-circle");
+    } else {
+      captureEl.style.width = captureDef.w + "px";
+      captureEl.style.height = captureDef.h + "px";
+      captureEl.classList.remove("shape-circle");
+      captureEl.classList.add("shape-pill");
+    }
+
+    // Standard/Purple print "L3"/"R3"/"SELECT"/"START" directly on these
+    // caps instead of the Xbox edition's icon glyphs (✳/⧉/⬆/hamburger).
+    TOP_STRIP_LABELS.forEach(function (row) {
+      var el = elements[row.id].root;
+      var def = elements[row.id].def;
+      el.innerHTML = "";
+      if (useAlt) {
+        el.textContent = row.label;
+        el.style.fontSize = "11px";
+        el.style.fontWeight = "700";
+      } else {
+        el.style.fontSize = "";
+        el.style.fontWeight = "";
+        if (def.icon === "menu") el.appendChild(buildMenuMark());
+        else el.textContent = def.label;
+      }
+    });
+
+    refreshLabelColors();
+  }
+
+  // Y/X/A/B's per-button label tint (yellow/blue/green/red, matching the
+  // Xbox controller's own face-button colors) fights the Standard/Purple
+  // fill colors — B in particular is nearly unreadable as red-on-red.
+  // Neither reference photo color-codes these letters at all, so drop
+  // back to the default light label color for both alt themes. Runs
+  // whenever theme OR layout changes (SF6 layout replaces Y with an icon,
+  // making this a no-op for it, but X/A keep their letters either way).
+  function refreshLabelColors() {
+    var useAlt = document.body.dataset.theme === "standard" || document.body.dataset.theme === "purple";
+    COLORED_LABEL_IDS.forEach(function (id) {
+      var e = elements[id];
+      if (!e.labelEl) return;
+      e.labelEl.style.color = useAlt ? "" : e.def.color;
+    });
+  }
+
   function applyStyle(id) {
     var e = elements[id];
     if (!e) return;
@@ -295,7 +544,20 @@
     e.root.style.setProperty("--active-fill", s.activeFill);
     e.root.style.setProperty("--active-border", s.activeBorder);
     if (e.labelEl) {
-      if (!e.def || !e.def.icon) e.labelEl.textContent = config.labels[id];
+      var overrides = LAYOUT_OVERRIDES[layout];
+      var override = overrides ? overrides[id] : null;
+      if (override && override.img) {
+        e.labelEl.innerHTML = "";
+        var img = document.createElement("img");
+        img.className = "sf6-icon";
+        img.src = override.img;
+        img.alt = override.alt;
+        e.labelEl.appendChild(img);
+      } else if (override && override.text) {
+        e.labelEl.textContent = override.text;
+      } else if (!e.def || !e.def.icon) {
+        e.labelEl.textContent = config.labels[id];
+      }
       e.root.classList.toggle("no-label", !s.showLabel);
     }
   }
@@ -328,11 +590,11 @@
   }
 
   function bindingLabel(b) {
-    if (!b) return "—";
+    if (!b) return t("dash");
     var parts = [];
-    if (typeof b.gamepad === "number") parts.push("Геймпад: кнопка " + b.gamepad);
-    if (b.key) parts.push("Клавиша: " + b.key);
-    return parts.length ? parts.join(" · ") : "—";
+    if (typeof b.gamepad === "number") parts.push(t("bindGamepadButton") + b.gamepad);
+    if (b.key) parts.push(t("bindKey") + b.key);
+    return parts.length ? parts.join(" · ") : t("dash");
   }
 
   function refreshInspector() {
@@ -390,7 +652,7 @@
   inspBind.addEventListener("click", function () {
     if (!selectedId) return;
     listening = selectedId;
-    inspBindingValue.textContent = "Нажмите клавишу или кнопку геймпада…";
+    inspBindingValue.textContent = t("pressKeyOrButton");
     inspBindingValue.classList.add("listening");
   });
 
@@ -440,10 +702,10 @@
   function updateGpStatus() {
     var ids = Object.keys(gpConnected);
     if (ids.length === 0) {
-      gpStatusEl.textContent = "Геймпад: не подключен";
+      gpStatusEl.textContent = t("gpDisconnected");
       gpStatusEl.className = "gp-status gp-status--off";
     } else {
-      gpStatusEl.textContent = "Геймпад: " + gpConnected[ids[0]];
+      gpStatusEl.textContent = t("gpConnectedPrefix") + gpConnected[ids[0]];
       gpStatusEl.className = "gp-status gp-status--on";
     }
   }
@@ -517,15 +779,47 @@
   var bgToggle = document.getElementById("bgToggle");
   var resetStyles = document.getElementById("resetStyles");
   var presetDark = document.getElementById("presetDark");
-  var presetNeon = document.getElementById("presetNeon");
+  var presetStandard = document.getElementById("presetStandard");
+  var presetPurple = document.getElementById("presetPurple");
+  var layoutXbox = document.getElementById("layoutXbox");
+  var layoutSf6 = document.getElementById("layoutSf6");
+  var layoutSwitch = document.getElementById("layoutSwitch");
   var exportCfg = document.getElementById("exportCfg");
   var importCfg = document.getElementById("importCfg");
   var importFile = document.getElementById("importFile");
+  var langRu = document.getElementById("langRu");
+  var langEn = document.getElementById("langEn");
+
+  function applyI18n() {
+    document.documentElement.lang = lang;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-title]"), function (el) {
+      el.title = t(el.getAttribute("data-i18n-title"));
+    });
+    langRu.classList.toggle("tb-btn--primary", lang === "ru");
+    langEn.classList.toggle("tb-btn--primary", lang === "en");
+    updateGpStatus();
+    editToggle.textContent = t("editModeLabel") + (editMode ? t("editModeOn") : t("editModeOff"));
+    if (listening) inspBindingValue.textContent = t("pressKeyOrButton");
+    else if (selectedId) refreshInspector();
+  }
+
+  function setLang(next) {
+    if (next === lang) return;
+    lang = next;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    applyI18n();
+  }
+
+  langRu.addEventListener("click", function () { setLang("ru"); });
+  langEn.addEventListener("click", function () { setLang("en"); });
 
   function setEditMode(on) {
     editMode = on;
     document.body.classList.toggle("edit-mode", on);
-    editToggle.textContent = "Режим редактирования: " + (on ? "ВКЛ" : "ВЫКЛ");
+    editToggle.textContent = t("editModeLabel") + (on ? t("editModeOn") : t("editModeOff"));
     if (!on) {
       selectedId = null;
       listening = null;
@@ -551,26 +845,139 @@
     document.body.classList.toggle("opaque-preview", bgToggle.checked);
   });
 
+  function setCaseTheme(theme) {
+    config.theme = theme;
+    document.body.dataset.theme = theme;
+    refreshTopIcons();
+  }
+
+  function applyLayout() {
+    layoutXbox.classList.toggle("tb-btn--primary", layout === "xbox");
+    layoutSf6.classList.toggle("tb-btn--primary", layout === "sf6");
+    layoutSwitch.classList.toggle("tb-btn--primary", layout === "switch");
+    applyAllStyles();
+    refreshLabelColors();
+  }
+
+  function setLayout(next) {
+    if (next === layout) return;
+    layout = next;
+    config.layout = next;
+    saveConfig();
+    applyLayout();
+  }
+
+  layoutXbox.addEventListener("click", function () { setLayout("xbox"); });
+  layoutSf6.addEventListener("click", function () { setLayout("sf6"); });
+  layoutSwitch.addEventListener("click", function () { setLayout("switch"); });
+
   resetStyles.addEventListener("click", function () {
-    if (!confirm("Сбросить цвета всех кнопок к значениям по умолчанию? Привязки входов сохранятся.")) return;
+    if (!confirm(t("confirmResetStyles"))) return;
     BUTTON_DEFS.forEach(function (def) { config.styles[def.id] = defaultStyleFor(def); });
+    setCaseTheme("");
     saveConfig();
     applyAllStyles();
     if (selectedId) refreshInspector();
   });
 
-  function applyPreset(idle, active, border) {
+  presetDark.addEventListener("click", function () {
+    // idleBorder must be reset here too, not just idleFill/active* — it
+    // was previously left untouched, so switching from Standard/Purple
+    // (which set per-button idleBorder, e.g. light rings on paddles) back
+    // to Dark left those mismatched borders stuck instead of restoring
+    // the uniform default ring.
     BUTTON_DEFS.forEach(function (def) {
-      config.styles[def.id].idleFill = idle;
-      config.styles[def.id].activeFill = active;
-      config.styles[def.id].activeBorder = border;
+      var s = config.styles[def.id];
+      s.idleFill = "#0c0c0c";
+      s.idleBorder = "#3a3b3e";
+      s.activeFill = "#0f1a12";
+      s.activeBorder = "#1cca27";
     });
+    setCaseTheme("");
     saveConfig();
     applyAllStyles();
     if (selectedId) refreshInspector();
-  }
-  presetDark.addEventListener("click", function () { applyPreset("#0c0c0c", "#0f1a12", "#1cca27"); });
-  presetNeon.addEventListener("click", function () { applyPreset("#101014", "#301854", "#a24bff"); });
+  });
+
+  // Colors sampled directly off references/8BitDo-Arcade-Controller-Nintendo-Switch.jpg
+  // (grey case, red main-grid buttons, black direction cluster/knobs, unfilled
+  // outline paddles, and the top-strip trio of round mode buttons which are
+  // NOT case-colored like everything else — green/yellow/blue, matching
+  // round_1/btn_xbox/round_2 in our layout — plus off-white L3/R3/SELECT/
+  // START, matching fn_star/fn_capture/fn_share/fn_menu) and
+  // references/80FG__02.webp + slide4-l.jpg (Transparent Purple Signature
+  // Edition — translucent purple case, EVERY button incl. those same
+  // top-strip ones uniformly purple-tinted, no per-button color coding).
+  presetStandard.addEventListener("click", function () {
+    BUTTON_DEFS.forEach(function (def) {
+      if (def.kind !== "button" && def.kind !== "fn" && def.kind !== "xbox") return;
+      var s = config.styles[def.id];
+      if (def.id === "round_1") {
+        s.idleFill = "#7df039";
+        s.idleBorder = "#2f7a1a";
+      } else if (def.id === "btn_xbox") {
+        s.idleFill = "#fcf044"; // cap fill CSS-overridden below (pad-xbox ignores --idle-fill)
+        s.idleBorder = "#b89b1a";
+      } else if (def.id === "round_2") {
+        s.idleFill = "#148af2";
+        s.idleBorder = "#0f5aa8";
+      } else if (def.id === "fn_star" || def.id === "fn_capture" || def.id === "fn_share" || def.id === "fn_menu") {
+        // #cbc7c3 (near-identical to the fill) made the edge disappear
+        // entirely at real button size — reuse the case's own border tone
+        // so the shape stays legible without going back to a hard ring.
+        s.idleFill = "#d9d6d3";
+        s.idleBorder = "#8f8b87";
+      } else if (def.id.indexOf("dir_") === 0) {
+        s.idleFill = "#232323";
+        s.idleBorder = "#3a3b3e";
+      } else if (def.id.indexOf("paddle_") === 0) {
+        // The reference photo's paddle outline is dark, close to the
+        // panel tone, with just a faint bevel glint on one edge — not
+        // the near-white ring #c9cbd0 was (guessed, not sampled).
+        s.idleFill = "#232323";
+        s.idleBorder = "#4a4a4a";
+      } else {
+        s.idleFill = "#a83a34";
+        s.idleBorder = "#181818";
+      }
+      s.activeFill = "#3a1210";
+      s.activeBorder = "#ff4136";
+    });
+    setCaseTheme("standard");
+    saveConfig();
+    applyAllStyles();
+    if (selectedId) refreshInspector();
+  });
+
+  presetPurple.addEventListener("click", function () {
+    BUTTON_DEFS.forEach(function (def) {
+      if (def.kind !== "button" && def.kind !== "fn" && def.kind !== "xbox") return;
+      var s = config.styles[def.id];
+      if (def.kind === "button") {
+        // the gameplay buttons (face grid, d-pad, paddles) are translucent
+        // plastic on the real Signature Edition — let the dark panel show
+        // through instead of a flat opaque fill. round_1/btn_xbox/round_2
+        // (kind fn/xbox) stay solid, matching their reference photo look.
+        // First pass (0.55 alpha over near-black) blended down to a muted
+        // rgb(55,46,72) — much darker than the photo's actual buttons,
+        // which stay bright/vivid even where light passes through; raised
+        // both the base tone and the alpha to land closer to that.
+        s.idleFill = "rgba(130, 102, 178, 0.72)";
+        s.idleBorder = "#2f1d45";
+        s.activeFill = "rgba(175, 138, 224, 0.82)";
+        s.activeBorder = "#c9a6ff";
+      } else {
+        s.idleFill = "#5c4b7b";
+        s.idleBorder = "#2f1d45";
+        s.activeFill = "#3a2a5c";
+        s.activeBorder = "#c9a6ff";
+      }
+    });
+    setCaseTheme("purple");
+    saveConfig();
+    applyAllStyles();
+    if (selectedId) refreshInspector();
+  });
 
   exportCfg.addEventListener("click", function () {
     var blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
@@ -594,11 +1001,15 @@
         if (parsed.bindings) Object.assign(config.bindings, parsed.bindings);
         if (parsed.styles) Object.assign(config.styles, parsed.styles);
         if (parsed.labels) Object.assign(config.labels, parsed.labels);
+        layout = (parsed.layout === "sf6" || parsed.layout === "switch") ? parsed.layout : "xbox";
+        config.layout = layout;
+        setCaseTheme(typeof parsed.theme === "string" ? parsed.theme : "");
+        applyLayout();
         saveConfig();
         applyAllStyles();
         if (selectedId) refreshInspector();
       } catch (err) {
-        alert("Не удалось прочитать файл конфигурации: " + err.message);
+        alert(t("importError") + err.message);
       }
     };
     reader.readAsText(file);
@@ -612,6 +1023,8 @@
   // Init
   // ---------------------------------------------------------------------
   buildStage();
+  setCaseTheme(config.theme || "");
+  applyLayout();
   updateGpStatus();
   rescale();
   requestAnimationFrame(tick);
@@ -622,4 +1035,5 @@
   } else {
     setEditMode(true);
   }
+  applyI18n();
 })();
