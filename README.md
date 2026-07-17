@@ -22,6 +22,10 @@ No build step, no dependencies: plain HTML/CSS/JS, editable directly in the brow
 
 Your configuration can be exported/imported via the toolbar so you can back it up or move it between machines.
 
+## Disclaimer
+
+This is an unofficial, fan-made tool. It is not affiliated with, endorsed by, or sponsored by 8BitDo or Microsoft. The controller layout was recreated from reference photos for personal use and shared publicly in case it's useful to others. All product names, logos, and brands referenced are property of their respective owners.
+
 ## License
 
-TBD
+The code in this repository is licensed under the [MIT License](LICENSE). This covers the original source code only — it does not grant any rights to third-party trademarks or logos referenced or depicted in the project.
