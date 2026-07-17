@@ -70,6 +70,94 @@
   // per-id bindings.
   var STORAGE_KEY = "arcadeOverlayConfig.v2";
 
+  // ---------------------------------------------------------------------
+  // i18n — control panel only (editor UI text). Persisted separately from
+  // the layout config so switching language never touches button bindings.
+  // ---------------------------------------------------------------------
+  var LANG_KEY = "arcadeOverlayLang";
+  var I18N = {
+    ru: {
+      toolbarHandleLabel: "☰ Панель",
+      toolbarHandleTitle: "Показать/скрыть панель редактора",
+      editModeLabel: "Режим редактирования: ",
+      editModeOn: "ВКЛ",
+      editModeOff: "ВЫКЛ",
+      gpDisconnected: "Геймпад: не подключен",
+      gpConnectedPrefix: "Геймпад: ",
+      presetDark: "Пресет: Тёмная",
+      presetDarkTitle: "Тёмная тема по умолчанию",
+      presetNeon: "Пресет: Неон",
+      presetNeonTitle: "Неоновая подсветка",
+      resetStyles: "Сбросить стили",
+      exportCfg: "Экспорт конфига",
+      importCfg: "Импорт конфига",
+      bgToggleLabel: "непрозрачный фон (превью)",
+      overlayHint: "Overlay-URL для OBS (Browser Source, фон прозрачный): ",
+      labelName: "Название",
+      labelBinding: "Привязка входа",
+      bindAssign: "Назначить…",
+      bindClear: "Очистить",
+      stateIdle: "Состояние: покой",
+      stateActive: "Состояние: нажато",
+      colorFill: "Заливка",
+      colorBorder: "Обводка",
+      colorBorderGlow: "Обводка/свечение",
+      showLabel: "Показывать подпись",
+      pressKeyOrButton: "Нажмите клавишу или кнопку геймпада…",
+      bindGamepadButton: "Геймпад: кнопка ",
+      bindKey: "Клавиша: ",
+      confirmResetStyles: "Сбросить цвета всех кнопок к значениям по умолчанию? Привязки входов сохранятся.",
+      importError: "Не удалось прочитать файл конфигурации: ",
+      dash: "—"
+    },
+    en: {
+      toolbarHandleLabel: "☰ Panel",
+      toolbarHandleTitle: "Show/hide the editor panel",
+      editModeLabel: "Edit mode: ",
+      editModeOn: "ON",
+      editModeOff: "OFF",
+      gpDisconnected: "Gamepad: not connected",
+      gpConnectedPrefix: "Gamepad: ",
+      presetDark: "Preset: Dark",
+      presetDarkTitle: "Default dark theme",
+      presetNeon: "Preset: Neon",
+      presetNeonTitle: "Neon glow theme",
+      resetStyles: "Reset styles",
+      exportCfg: "Export config",
+      importCfg: "Import config",
+      bgToggleLabel: "opaque background (preview)",
+      overlayHint: "Overlay URL for OBS (Browser Source, transparent background): ",
+      labelName: "Name",
+      labelBinding: "Input binding",
+      bindAssign: "Assign…",
+      bindClear: "Clear",
+      stateIdle: "State: idle",
+      stateActive: "State: pressed",
+      colorFill: "Fill",
+      colorBorder: "Border",
+      colorBorderGlow: "Border/glow",
+      showLabel: "Show label",
+      pressKeyOrButton: "Press a key or gamepad button…",
+      bindGamepadButton: "Gamepad: button ",
+      bindKey: "Key: ",
+      confirmResetStyles: "Reset all button colors to defaults? Input bindings will be kept.",
+      importError: "Failed to read config file: ",
+      dash: "—"
+    }
+  };
+
+  var lang = (function () {
+    var saved = null;
+    try { saved = localStorage.getItem(LANG_KEY); } catch (e) { saved = null; }
+    if (saved === "ru" || saved === "en") return saved;
+    return (navigator.language || "").toLowerCase().indexOf("ru") === 0 ? "ru" : "en";
+  })();
+
+  function t(key) {
+    var dict = I18N[lang] || I18N.ru;
+    return dict[key] !== undefined ? dict[key] : I18N.ru[key];
+  }
+
   function defaultStyleFor(def) {
     return {
       idleFill: "#0c0c0c",
@@ -328,11 +416,11 @@
   }
 
   function bindingLabel(b) {
-    if (!b) return "—";
+    if (!b) return t("dash");
     var parts = [];
-    if (typeof b.gamepad === "number") parts.push("Геймпад: кнопка " + b.gamepad);
-    if (b.key) parts.push("Клавиша: " + b.key);
-    return parts.length ? parts.join(" · ") : "—";
+    if (typeof b.gamepad === "number") parts.push(t("bindGamepadButton") + b.gamepad);
+    if (b.key) parts.push(t("bindKey") + b.key);
+    return parts.length ? parts.join(" · ") : t("dash");
   }
 
   function refreshInspector() {
@@ -390,7 +478,7 @@
   inspBind.addEventListener("click", function () {
     if (!selectedId) return;
     listening = selectedId;
-    inspBindingValue.textContent = "Нажмите клавишу или кнопку геймпада…";
+    inspBindingValue.textContent = t("pressKeyOrButton");
     inspBindingValue.classList.add("listening");
   });
 
@@ -440,10 +528,10 @@
   function updateGpStatus() {
     var ids = Object.keys(gpConnected);
     if (ids.length === 0) {
-      gpStatusEl.textContent = "Геймпад: не подключен";
+      gpStatusEl.textContent = t("gpDisconnected");
       gpStatusEl.className = "gp-status gp-status--off";
     } else {
-      gpStatusEl.textContent = "Геймпад: " + gpConnected[ids[0]];
+      gpStatusEl.textContent = t("gpConnectedPrefix") + gpConnected[ids[0]];
       gpStatusEl.className = "gp-status gp-status--on";
     }
   }
@@ -521,11 +609,39 @@
   var exportCfg = document.getElementById("exportCfg");
   var importCfg = document.getElementById("importCfg");
   var importFile = document.getElementById("importFile");
+  var langRu = document.getElementById("langRu");
+  var langEn = document.getElementById("langEn");
+
+  function applyI18n() {
+    document.documentElement.lang = lang;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-title]"), function (el) {
+      el.title = t(el.getAttribute("data-i18n-title"));
+    });
+    langRu.classList.toggle("tb-btn--primary", lang === "ru");
+    langEn.classList.toggle("tb-btn--primary", lang === "en");
+    updateGpStatus();
+    editToggle.textContent = t("editModeLabel") + (editMode ? t("editModeOn") : t("editModeOff"));
+    if (listening) inspBindingValue.textContent = t("pressKeyOrButton");
+    else if (selectedId) refreshInspector();
+  }
+
+  function setLang(next) {
+    if (next === lang) return;
+    lang = next;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+    applyI18n();
+  }
+
+  langRu.addEventListener("click", function () { setLang("ru"); });
+  langEn.addEventListener("click", function () { setLang("en"); });
 
   function setEditMode(on) {
     editMode = on;
     document.body.classList.toggle("edit-mode", on);
-    editToggle.textContent = "Режим редактирования: " + (on ? "ВКЛ" : "ВЫКЛ");
+    editToggle.textContent = t("editModeLabel") + (on ? t("editModeOn") : t("editModeOff"));
     if (!on) {
       selectedId = null;
       listening = null;
@@ -552,7 +668,7 @@
   });
 
   resetStyles.addEventListener("click", function () {
-    if (!confirm("Сбросить цвета всех кнопок к значениям по умолчанию? Привязки входов сохранятся.")) return;
+    if (!confirm(t("confirmResetStyles"))) return;
     BUTTON_DEFS.forEach(function (def) { config.styles[def.id] = defaultStyleFor(def); });
     saveConfig();
     applyAllStyles();
@@ -598,7 +714,7 @@
         applyAllStyles();
         if (selectedId) refreshInspector();
       } catch (err) {
-        alert("Не удалось прочитать файл конфигурации: " + err.message);
+        alert(t("importError") + err.message);
       }
     };
     reader.readAsText(file);
@@ -622,4 +738,5 @@
   } else {
     setEditMode(true);
   }
+  applyI18n();
 })();

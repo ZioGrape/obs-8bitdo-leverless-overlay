@@ -68,6 +68,9 @@ body.overlay-mode #stageWrap{
   flex-wrap:wrap;
 }
 
+.tb-lang{ gap:4px; }
+.tb-lang-btn{ min-width:38px; text-align:center; }
+
 .tb-hint{
   flex-basis:100%;
   color:#8a8d93;
