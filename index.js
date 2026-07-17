@@ -86,8 +86,10 @@
       gpConnectedPrefix: "Геймпад: ",
       presetDark: "Пресет: Тёмная",
       presetDarkTitle: "Тёмная тема по умолчанию",
-      presetNeon: "Пресет: Неон",
-      presetNeonTitle: "Неоновая подсветка",
+      presetStandard: "Пресет: Стандарт",
+      presetStandardTitle: "Серый корпус, красные кнопки (стандартная расцветка 8BitDo Arcade Controller)",
+      presetPurple: "Пресет: Purple",
+      presetPurpleTitle: "Прозрачно-фиолетовый корпус (Transparent Purple Signature Edition)",
       resetStyles: "Сбросить стили",
       exportCfg: "Экспорт конфига",
       importCfg: "Импорт конфига",
@@ -120,8 +122,10 @@
       gpConnectedPrefix: "Gamepad: ",
       presetDark: "Preset: Dark",
       presetDarkTitle: "Default dark theme",
-      presetNeon: "Preset: Neon",
-      presetNeonTitle: "Neon glow theme",
+      presetStandard: "Preset: Standard",
+      presetStandardTitle: "Grey case, red buttons (stock 8BitDo Arcade Controller colorway)",
+      presetPurple: "Preset: Purple",
+      presetPurpleTitle: "Transparent Purple Signature Edition",
       resetStyles: "Reset styles",
       exportCfg: "Export config",
       importCfg: "Import config",
@@ -175,6 +179,7 @@
     cfg.bindings = cfg.bindings || {};
     cfg.styles = cfg.styles || {};
     cfg.labels = cfg.labels || {};
+    cfg.theme = typeof cfg.theme === "string" ? cfg.theme : "";
 
     BUTTON_DEFS.forEach(function (def) {
       if (!cfg.bindings[def.id]) {
@@ -284,6 +289,37 @@
     return svg;
   }
 
+  // wifi/signal mark — the Standard and Purple Signature editions use this
+  // (plus a star, swapped with the Xbox hub) on the top-strip trio instead
+  // of the Xbox-edition's star/Xbox-mark/heart, per their reference photos.
+  function buildWifiMark() {
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.style.width = "62%";
+    svg.style.height = "62%";
+    [
+      "M2 8.5C7 3.5 17 3.5 22 8.5",
+      "M5.5 12.5C9 9 15 9 18.5 12.5",
+      "M9 16.5C10.7 14.8 13.3 14.8 15 16.5"
+    ].forEach(function (d) {
+      var p = document.createElementNS(svgNS, "path");
+      p.setAttribute("d", d);
+      p.setAttribute("stroke", "currentColor");
+      p.setAttribute("stroke-width", "2");
+      p.setAttribute("stroke-linecap", "round");
+      svg.appendChild(p);
+    });
+    var dot = document.createElementNS(svgNS, "circle");
+    dot.setAttribute("cx", "12");
+    dot.setAttribute("cy", "20");
+    dot.setAttribute("r", "1.4");
+    dot.setAttribute("fill", "currentColor");
+    svg.appendChild(dot);
+    return svg;
+  }
+
   // ---------------------------------------------------------------------
   // Build DOM
   // ---------------------------------------------------------------------
@@ -372,6 +408,75 @@
 
   function applyAllStyles() {
     BUTTON_DEFS.forEach(function (def) { applyStyle(def.id); });
+  }
+
+  var TOP_STRIP_LABELS = [
+    { id: "fn_star", label: "L3" },
+    { id: "fn_capture", label: "R3" },
+    { id: "fn_share", label: "SELECT" },
+    { id: "fn_menu", label: "START" }
+  ];
+
+  var COLORED_LABEL_IDS = ["btn_Y", "btn_X", "btn_A", "btn_B"];
+
+  // Standard/Purple show wifi-mark + star on the top-strip trio instead of
+  // the Xbox edition's star + Xbox-mark (round_2's heart is shared by all
+  // editions, so it's left alone). Re-run whenever the case theme changes.
+  function refreshTopIcons() {
+    var useAlt = document.body.dataset.theme === "standard" || document.body.dataset.theme === "purple";
+    var round1El = elements["round_1"].root;
+    round1El.innerHTML = "";
+    round1El.appendChild(useAlt ? buildWifiMark() : buildStarMark());
+    var xboxEl = elements["btn_xbox"].root;
+    xboxEl.innerHTML = "";
+    xboxEl.appendChild(useAlt ? buildStarMark() : buildXboxMark());
+
+    // The Xbox edition's L3/R3/SELECT/START-equivalent row is 1 round +
+    // 3 pill (fn_star round, the rest pill). Standard/Purple's is 2 round
+    // + 2 pill (L3/R3 round, SELECT/START pill) — fn_capture is the one
+    // that needs to switch shape; fn_star/fn_share/fn_menu already match.
+    var captureEl = elements["fn_capture"].root;
+    var captureDef = elements["fn_capture"].def;
+    if (useAlt) {
+      captureEl.style.width = elements["fn_star"].def.w + "px";
+      captureEl.style.height = elements["fn_star"].def.h + "px";
+      captureEl.classList.remove("shape-pill");
+      captureEl.classList.add("shape-circle");
+    } else {
+      captureEl.style.width = captureDef.w + "px";
+      captureEl.style.height = captureDef.h + "px";
+      captureEl.classList.remove("shape-circle");
+      captureEl.classList.add("shape-pill");
+    }
+
+    // Standard/Purple print "L3"/"R3"/"SELECT"/"START" directly on these
+    // caps instead of the Xbox edition's icon glyphs (✳/⧉/⬆/hamburger).
+    TOP_STRIP_LABELS.forEach(function (row) {
+      var el = elements[row.id].root;
+      var def = elements[row.id].def;
+      el.innerHTML = "";
+      if (useAlt) {
+        el.textContent = row.label;
+        el.style.fontSize = "11px";
+        el.style.fontWeight = "700";
+      } else {
+        el.style.fontSize = "";
+        el.style.fontWeight = "";
+        if (def.icon === "menu") el.appendChild(buildMenuMark());
+        else el.textContent = def.label;
+      }
+    });
+
+    // Y/X/A/B's per-button label tint (yellow/blue/green/red, matching the
+    // Xbox controller's own face-button colors) fights the Standard/Purple
+    // fill colors — B in particular is nearly unreadable as red-on-red.
+    // Neither reference photo color-codes these letters at all, so drop
+    // back to the default light label color for both alt themes.
+    COLORED_LABEL_IDS.forEach(function (id) {
+      var e = elements[id];
+      if (!e.labelEl) return;
+      e.labelEl.style.color = useAlt ? "" : e.def.color;
+    });
   }
 
   function applyStyle(id) {
@@ -605,7 +710,8 @@
   var bgToggle = document.getElementById("bgToggle");
   var resetStyles = document.getElementById("resetStyles");
   var presetDark = document.getElementById("presetDark");
-  var presetNeon = document.getElementById("presetNeon");
+  var presetStandard = document.getElementById("presetStandard");
+  var presetPurple = document.getElementById("presetPurple");
   var exportCfg = document.getElementById("exportCfg");
   var importCfg = document.getElementById("importCfg");
   var importFile = document.getElementById("importFile");
@@ -667,26 +773,104 @@
     document.body.classList.toggle("opaque-preview", bgToggle.checked);
   });
 
+  function setCaseTheme(theme) {
+    config.theme = theme;
+    document.body.dataset.theme = theme;
+    refreshTopIcons();
+  }
+
   resetStyles.addEventListener("click", function () {
     if (!confirm(t("confirmResetStyles"))) return;
     BUTTON_DEFS.forEach(function (def) { config.styles[def.id] = defaultStyleFor(def); });
+    setCaseTheme("");
     saveConfig();
     applyAllStyles();
     if (selectedId) refreshInspector();
   });
 
-  function applyPreset(idle, active, border) {
+  presetDark.addEventListener("click", function () {
+    // idleBorder must be reset here too, not just idleFill/active* — it
+    // was previously left untouched, so switching from Standard/Purple
+    // (which set per-button idleBorder, e.g. light rings on paddles) back
+    // to Dark left those mismatched borders stuck instead of restoring
+    // the uniform default ring.
     BUTTON_DEFS.forEach(function (def) {
-      config.styles[def.id].idleFill = idle;
-      config.styles[def.id].activeFill = active;
-      config.styles[def.id].activeBorder = border;
+      var s = config.styles[def.id];
+      s.idleFill = "#0c0c0c";
+      s.idleBorder = "#3a3b3e";
+      s.activeFill = "#0f1a12";
+      s.activeBorder = "#1cca27";
     });
+    setCaseTheme("");
     saveConfig();
     applyAllStyles();
     if (selectedId) refreshInspector();
-  }
-  presetDark.addEventListener("click", function () { applyPreset("#0c0c0c", "#0f1a12", "#1cca27"); });
-  presetNeon.addEventListener("click", function () { applyPreset("#101014", "#301854", "#a24bff"); });
+  });
+
+  // Colors sampled directly off references/8BitDo-Arcade-Controller-Nintendo-Switch.jpg
+  // (grey case, red main-grid buttons, black direction cluster/knobs, unfilled
+  // outline paddles, and the top-strip trio of round mode buttons which are
+  // NOT case-colored like everything else — green/yellow/blue, matching
+  // round_1/btn_xbox/round_2 in our layout — plus off-white L3/R3/SELECT/
+  // START, matching fn_star/fn_capture/fn_share/fn_menu) and
+  // references/80FG__02.webp + slide4-l.jpg (Transparent Purple Signature
+  // Edition — translucent purple case, EVERY button incl. those same
+  // top-strip ones uniformly purple-tinted, no per-button color coding).
+  presetStandard.addEventListener("click", function () {
+    BUTTON_DEFS.forEach(function (def) {
+      if (def.kind !== "button" && def.kind !== "fn" && def.kind !== "xbox") return;
+      var s = config.styles[def.id];
+      if (def.id === "round_1") {
+        s.idleFill = "#7df039";
+        s.idleBorder = "#2f7a1a";
+      } else if (def.id === "btn_xbox") {
+        s.idleFill = "#fcf044"; // cap fill CSS-overridden below (pad-xbox ignores --idle-fill)
+        s.idleBorder = "#b89b1a";
+      } else if (def.id === "round_2") {
+        s.idleFill = "#148af2";
+        s.idleBorder = "#0f5aa8";
+      } else if (def.id === "fn_star" || def.id === "fn_capture" || def.id === "fn_share" || def.id === "fn_menu") {
+        // #cbc7c3 (near-identical to the fill) made the edge disappear
+        // entirely at real button size — reuse the case's own border tone
+        // so the shape stays legible without going back to a hard ring.
+        s.idleFill = "#d9d6d3";
+        s.idleBorder = "#8f8b87";
+      } else if (def.id.indexOf("dir_") === 0) {
+        s.idleFill = "#232323";
+        s.idleBorder = "#3a3b3e";
+      } else if (def.id.indexOf("paddle_") === 0) {
+        // The reference photo's paddle outline is dark, close to the
+        // panel tone, with just a faint bevel glint on one edge — not
+        // the near-white ring #c9cbd0 was (guessed, not sampled).
+        s.idleFill = "#232323";
+        s.idleBorder = "#4a4a4a";
+      } else {
+        s.idleFill = "#a83a34";
+        s.idleBorder = "#181818";
+      }
+      s.activeFill = "#3a1210";
+      s.activeBorder = "#ff4136";
+    });
+    setCaseTheme("standard");
+    saveConfig();
+    applyAllStyles();
+    if (selectedId) refreshInspector();
+  });
+
+  presetPurple.addEventListener("click", function () {
+    BUTTON_DEFS.forEach(function (def) {
+      if (def.kind !== "button" && def.kind !== "fn" && def.kind !== "xbox") return;
+      var s = config.styles[def.id];
+      s.idleFill = "#5c4b7b";
+      s.idleBorder = "#2f1d45";
+      s.activeFill = "#3a2a5c";
+      s.activeBorder = "#c9a6ff";
+    });
+    setCaseTheme("purple");
+    saveConfig();
+    applyAllStyles();
+    if (selectedId) refreshInspector();
+  });
 
   exportCfg.addEventListener("click", function () {
     var blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
@@ -710,6 +894,7 @@
         if (parsed.bindings) Object.assign(config.bindings, parsed.bindings);
         if (parsed.styles) Object.assign(config.styles, parsed.styles);
         if (parsed.labels) Object.assign(config.labels, parsed.labels);
+        setCaseTheme(typeof parsed.theme === "string" ? parsed.theme : "");
         saveConfig();
         applyAllStyles();
         if (selectedId) refreshInspector();
@@ -728,6 +913,7 @@
   // Init
   // ---------------------------------------------------------------------
   buildStage();
+  setCaseTheme(config.theme || "");
   updateGpStatus();
   rescale();
   requestAnimationFrame(tick);
