@@ -9,7 +9,9 @@ No build step, no dependencies: plain HTML/CSS/JS, editable directly in the brow
 - Reads input live via the Gamepad API (with keyboard fallback for testing without a controller connected)
 - Visual layout traced from reference photos of the real controller, so on-screen buttons line up with the physical ones
 - Built-in editor: reposition/relabel buttons, rebind inputs, set idle/active colors per button
-- Dark and Neon color presets
+- Color presets — Dark (Xbox edition), Standard, and Purple Signature Edition — each traced from that edition's own reference photos
+- Controller layouts — Xbox, Street Fighter 6 (LP/MP/HP/LK/MK/HK + Drive Impact/Parry), Nintendo Switch (X/Y and A/B swapped, R/L/ZR/ZL) — independent of the color preset
+- RU/EN interface localization
 - Export/import your layout as a JSON config file
 - Config persists locally (`localStorage`) between sessions
 - Transparent background in overlay mode for clean OBS compositing
@@ -24,7 +26,7 @@ Your configuration can be exported/imported via the toolbar so you can back it u
 
 ## Disclaimer
 
-This is an unofficial, fan-made tool. It is not affiliated with, endorsed by, or sponsored by 8BitDo or Microsoft. The controller layout was recreated from reference photos for personal use and shared publicly in case it's useful to others. All product names, logos, and brands referenced are property of their respective owners.
+This is an unofficial, fan-made tool. It is not affiliated with, endorsed by, or sponsored by 8BitDo, Microsoft, Nintendo, or Capcom. The controller layout was recreated from reference photos for personal use and shared publicly in case it's useful to others. All product names, logos, and brands referenced are property of their respective owners.
 
 ## License
 
