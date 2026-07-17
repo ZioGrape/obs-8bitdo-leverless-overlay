@@ -319,6 +319,20 @@ body[data-theme="standard"] .hand-surface::after{
 
 .pad-btn .lbl{
   pointer-events:none;
+  /* without this, an icon child (e.g. the SF6 punch/kick images) isn't
+     reliably centered — .lbl shrink-wraps around it via normal inline
+     flow, and a percentage-sized child inside a shrink-to-fit box
+     resolves against an unpredictable size, landing top-left instead of
+     centered. */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.pad-btn .lbl img.sf6-icon{
+  width:58px;
+  height:58px;
+  object-fit:contain;
 }
 
 .pad-btn .lbl--arrow{
