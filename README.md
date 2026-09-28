@@ -24,25 +24,25 @@ No build step, no dependencies: plain HTML/CSS/JS, editable directly in the brow
 
 The overlay mirrors the controller in real time.
 
-<video src="./docs/demo/button-press.mp4" controls muted loop playsinline width="100%">
-  <a href="./docs/demo/button-press.mp4">Watch the video</a>
-</video>
+![Live button presses](docs/demo/button-press.gif)
+
+[Full quality video](docs/demo/button-press.mp4)
 
 ### Case and layout presets
 
 Switch between color presets (Dark, Standard, Purple) and controller layouts (Xbox, Street Fighter 6, Nintendo Switch).
 
-<video src="./docs/demo/presets-and-layouts.mp4" controls muted loop playsinline width="100%">
-  <a href="./docs/demo/presets-and-layouts.mp4">Watch the video</a>
-</video>
+![Case and layout presets](docs/demo/presets-and-layouts.gif)
+
+[Full quality video](docs/demo/presets-and-layouts.mp4)
 
 ### Button customisation
 
 Relabel buttons, rebind inputs, and set idle/active colors per button in the built-in editor.
 
-<video src="./docs/demo/button-customisation.mp4" controls muted loop playsinline width="100%">
-  <a href="./docs/demo/button-customisation.mp4">Watch the video</a>
-</video>
+![Button customisation](docs/demo/button-customisation.gif)
+
+[Full quality video](docs/demo/button-customisation.mp4)
 
 ## Usage
 
