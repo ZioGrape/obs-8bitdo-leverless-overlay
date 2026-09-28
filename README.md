@@ -26,23 +26,17 @@ The overlay mirrors the controller in real time.
 
 ![Live button presses](docs/demo/button-press.gif)
 
-[Full quality video](docs/demo/button-press.mp4)
-
 ### Case and layout presets
 
 Switch between color presets (Dark, Standard, Purple) and controller layouts (Xbox, Street Fighter 6, Nintendo Switch).
 
 ![Case and layout presets](docs/demo/presets-and-layouts.gif)
 
-[Full quality video](docs/demo/presets-and-layouts.mp4)
-
 ### Button customisation
 
 Relabel buttons, rebind inputs, and set idle/active colors per button in the built-in editor.
 
 ![Button customisation](docs/demo/button-customisation.gif)
-
-[Full quality video](docs/demo/button-customisation.mp4)
 
 ## Usage
 
