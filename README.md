@@ -4,6 +4,8 @@ A browser-based stream overlay that visualizes button presses on the **8BitDo Ar
 
 No build step, no dependencies: plain HTML/CSS/JS, editable directly in the browser.
 
+**[Live demo](https://ziogrape.github.io/obs-8bitdo-leverless-overlay/)** — the deployed version works exactly the same as running it locally.
+
 ## Features
 
 - Reads input live via the Gamepad API (with keyboard fallback for testing without a controller connected)
@@ -16,10 +18,36 @@ No build step, no dependencies: plain HTML/CSS/JS, editable directly in the brow
 - Config persists locally (`localStorage`) between sessions
 - Transparent background in overlay mode for clean OBS compositing
 
+## Demo
+
+### Live button presses
+
+The overlay mirrors the controller in real time.
+
+![Live button presses](docs/demo/button-press.gif)
+
+[Full quality video](docs/demo/button-press.mp4)
+
+### Case and layout presets
+
+Switch between color presets (Dark, Standard, Purple) and controller layouts (Xbox, Street Fighter 6, Nintendo Switch).
+
+![Case and layout presets](docs/demo/presets-and-layouts.gif)
+
+[Full quality video](docs/demo/presets-and-layouts.mp4)
+
+### Button customisation
+
+Relabel buttons, rebind inputs, and set idle/active colors per button in the built-in editor.
+
+![Button customisation](docs/demo/button-customisation.gif)
+
+[Full quality video](docs/demo/button-customisation.mp4)
+
 ## Usage
 
-1. Open `index.html` in a browser to enter edit mode and customize the layout, colors, and bindings.
-2. In OBS, add a **Browser Source** pointing at `index.html?overlay=1` (this hides the editor UI and keeps the background transparent).
+1. Open `index.html` in a browser (or the [live demo](https://ziogrape.github.io/obs-8bitdo-leverless-overlay/)) to enter edit mode and customize the layout, colors, and bindings.
+2. In OBS, add a **Browser Source** pointing at `index.html?overlay=1` (this hides the editor UI and keeps the background transparent). You can also use the hosted version: `https://ziogrape.github.io/obs-8bitdo-leverless-overlay/?overlay=1`.
 3. Connect your 8BitDo Arcade Controller — the on-screen overlay will mirror button presses live.
 
 Your configuration can be exported/imported via the toolbar so you can back it up or move it between machines.
